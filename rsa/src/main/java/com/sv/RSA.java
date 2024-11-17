@@ -1,45 +1,52 @@
-package com.rsa;
+package com.sv;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class RSA {
+    private final Logger logger = LogManager.getLogger(RSA.class);
+
     private BigInteger n, d, e;
 
     private static int bitLength = 1024;
 
     public RSA() {
+
+        logger.info("Generazione chiavi");
+
         SecureRandom random = new SecureRandom();
 
         BigInteger p = BigInteger.probablePrime(bitLength / 2 + 1, random);
+        logger.debug("n generato:" + p);
 
         BigInteger q = BigInteger.probablePrime(bitLength / 2 + 1, random);
+        logger.debug("q generato" + q);
 
-        
-        System.out.println("p: " + p);
-        System.out.println("q: " + q);
+
 
         n = p.multiply(q);
+        logger.debug("n generato" + n);
         
-        System.out.println("n: " + n);
         
         BigInteger phi = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));
+        logger.debug("phi generato" + phi);
         
         e = BigInteger.probablePrime(bitLength / 4, random);
+        logger.debug("e generato" + e);
         /* 
         while (phi.gcd(e).compareTo(BigInteger.ONE) > 0 && e.compareTo(phi) < 0) {
             e = e.add(BigInteger.ONE);
         }*/
 
         d = e.modInverse(phi);
+        logger.debug("d generato" + d);
         
-        
-        System.out.println("e: " + e);
-        
-        System.out.println("d: " + d);
     }
 
     public BigInteger getPublicKey() {
@@ -54,15 +61,17 @@ public class RSA {
         return n;
     }
 
-    public BigInteger encrypt(BigInteger message) {
+    private BigInteger encrypt(BigInteger message) {
         return message.modPow(e, n);
     }
 
-    public BigInteger decrypt(BigInteger encrypted) {
+    private BigInteger decrypt(BigInteger encrypted) {
         return encrypted.modPow(d, n);
     }
 
     public List<BigInteger> encryptText(String message) {
+        
+        logger.info("encrypting messaggio");
         
         List<String> messages = splitStr(message, bitLength/8);
 
@@ -81,6 +90,8 @@ public class RSA {
 
     public String decryptText(List<BigInteger> encrypted) {
         
+        logger.info("decrypting messaggio");
+
         String decryptedMessages = "";
 
         for (BigInteger c : encrypted) {
@@ -94,7 +105,7 @@ public class RSA {
         return decryptedMessages;
     }
 
-    public static List<String> splitStr(String str, int len) {
+    private static List<String> splitStr(String str, int len) {
         List<String> result = new ArrayList<>();
         for (int i = 0; i < str.length(); i += len) {
             result.add(str.substring(i, Math.min(i + len, str.length())));
